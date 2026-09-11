@@ -7,8 +7,8 @@ namespace eCommerce.Application.Validations
     {
         public async Task<ServiceResponse> ValidateAsync<T>(T model, IValidator<T> validator)
         {
-           var validationResult =await validator.ValidateAsync(model);
-            if (validationResult.IsValid) 
+            var validationResult = await validator.ValidateAsync(model);
+            if (!validationResult.IsValid)
             {
                 var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
                 string errorsToString = string.Join("; ", errors);

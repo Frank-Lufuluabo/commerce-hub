@@ -21,11 +21,7 @@ namespace eCommerce.Infrastructure.Repositories.Authentication
 
         public async Task<AppUser?> GetUserByEmail(string email) => await userManager.FindByEmailAsync(email);
 
-        public async Task<AppUser> GetUserById(string id)
-        {
-            var user = await userManager.FindByEmailAsync(id);
-            return user!;
-        }
+        public async Task<AppUser?> GetUserById(string id) => await userManager.FindByIdAsync(id);
 
         public async Task<List<Claim>> GetUserClaims(string email)
         {

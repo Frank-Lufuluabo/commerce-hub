@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -40,14 +39,9 @@ namespace eCommerce.Infrastructure.Repositories.Authentication
 
         public string GetRefreshToken()
         {
-            const int byteSize = 64;
-            byte[] randomeBytes = new byte[byteSize];
-            using (RandomNumberGenerator rng = RandomNumberGenerator.Create()) 
-            { 
-                rng.GetBytes(randomeBytes);
-            }
-            string token = Convert.ToBase64String(randomeBytes);
-            return WebUtility.UrlEncode(token);
+            byte[] randomBytes = new byte[64];
+            RandomNumberGenerator.Fill(randomBytes);
+            return Base64UrlEncoder.Encode(randomBytes);
         }
 
         public List<Claim> GetUserClaimsFromToken(string token)
@@ -61,13 +55,13 @@ namespace eCommerce.Infrastructure.Repositories.Authentication
         }
 
         public async Task<string> GetUserIdByRefreshToken(string refreshToken)
-        => (await context.RefreshToken.FirstOrDefaultAsync(_ => _.Token == refreshToken))!.UserId;
+            => (await context.RefreshToken.FirstOrDefaultAsync(_ => _.Token == refreshToken))?.UserId ?? string.Empty;
 
         public async Task<int> UpdateRefreshToken(string userId, string refreshToken)
         {
-            var user = await context.RefreshToken.FirstOrDefaultAsync(_ => _.Token == refreshToken);
-            if (user == null) return -1;
-            user.Token = refreshToken;
+            var storedToken = await context.RefreshToken.FirstOrDefaultAsync(_ => _.UserId == userId);
+            if (storedToken == null) return -1;
+            storedToken.Token = refreshToken;
             return await context.SaveChangesAsync();
         }
 

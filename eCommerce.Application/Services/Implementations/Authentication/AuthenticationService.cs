@@ -26,26 +26,27 @@ namespace eCommerce.Application.Service.Implementation.Authentication
             mapperModel.PasswordHash = user.Password;
 
             var result = await userManagement.CreateUser(mapperModel);
-            if (!result)
-                return new ServiceResponse { Message = "Email Address might be already in use or  unknown error occurred" };
-
             var _user = await userManagement.GetUserByEmail(user.Email);
+
+            if (!result)
+            {
+                if (_user is null || !string.IsNullOrEmpty(await roleManagement.GetUserRole(_user.Email!)))
+                    return new ServiceResponse { Message = "Email Address might be already in use or  unknown error occurred" };
+            }
+
             var users = await userManagement.GetAllUser();
             bool assignedResult = await roleManagement.AddUserToRole(_user!, users!.Count() > 1 ? "User" : "Admin");
 
             if (!assignedResult)
             {
-                // Remove user
                 int removeUserResult = await userManagement.RemoveUserByEmail(user!.Email!);
                 if (removeUserResult <= 0)
                 {
-                    // Error occured while rolling back changes
-                    // then log the error
                     logger.LogError(
-                        new Exception($"User witj Email as {_user.Email} failed to be remove as a result of role assigning issue"), 
+                        new Exception($"User with Email as {_user.Email} failed to be remove as a result of role assigning issue"),
                         "User could not be assigned Role");
-                    return new ServiceResponse { Message = "Error occured in creating account" };
                 }
+                return new ServiceResponse { Message = "Error occured in creating account" };
             }
             return new ServiceResponse { Success = true, Message = "Account Created!" };
 
@@ -65,18 +66,15 @@ namespace eCommerce.Application.Service.Implementation.Authentication
             if (!loginResult)
                 return new LoginResponse(Message: "Email not found or invalid credentials");
 
-            var _user = await userManagement.GetUserById(user.Email);
-            var claims = await userManagement.GetUserClaims(_user!.Email);
+            var _user = await userManagement.GetUserByEmail(user.Email);
+            var claims = await userManagement.GetUserClaims(_user!.Email!);
 
             string jwtToken = tokenManagement.GenerateToken(claims);
             string refreshToken = tokenManagement.GetRefreshToken();
 
-            int saveTokenResult = 0;
-            bool userTokenCheck = await tokenManagement.ValidateRefreshToken(refreshToken);
-            if (userTokenCheck)
-                saveTokenResult = await tokenManagement.UpdateRefreshToken(_user.Id, refreshToken);
-            else
-            saveTokenResult = await tokenManagement.AddRefreshToken(_user.Id, refreshToken);
+            int saveTokenResult = await tokenManagement.UpdateRefreshToken(_user.Id, refreshToken);
+            if (saveTokenResult <= 0)
+                saveTokenResult = await tokenManagement.AddRefreshToken(_user.Id, refreshToken);
 
             return saveTokenResult <= 0 ? new LoginResponse(Message: "Internal error occured while authenticating") :
                 new LoginResponse(Success: true, Token: jwtToken, RefreshToken: refreshToken);
@@ -84,16 +82,22 @@ namespace eCommerce.Application.Service.Implementation.Authentication
 
         public async Task<LoginResponse> ReviveToken(string refreshToken)
         {
-          bool validateTokenResult = await tokenManagement.ValidateRefreshToken(refreshToken);
+            bool validateTokenResult = await tokenManagement.ValidateRefreshToken(refreshToken);
             if (!validateTokenResult)
                 return new LoginResponse(Message: "Invalid token");
 
             string userId = await tokenManagement.GetUserIdByRefreshToken(refreshToken);
-            AppUser? user = await userManagement.GetUserById(userId);
-            var claims = await userManagement.GetUserClaims(user!.Email!);
+            AppUser? foundUser = await userManagement.GetUserById(userId);
+            if (foundUser is null)
+                return new LoginResponse(Message: "Invalid token");
+
+            var claims = await userManagement.GetUserClaims(foundUser.Email!);
             string newJwtToken = tokenManagement.GenerateToken(claims);
             string newRefreshToken = tokenManagement.GetRefreshToken();
-            await tokenManagement.UpdateRefreshToken(userId, newRefreshToken);
+            int updateResult = await tokenManagement.UpdateRefreshToken(userId, newRefreshToken);
+            if (updateResult <= 0)
+                return new LoginResponse(Message: "Internal error occured while authenticating");
+
             return new LoginResponse(Success: true, Token: newJwtToken, RefreshToken: newRefreshToken);
         }
     }

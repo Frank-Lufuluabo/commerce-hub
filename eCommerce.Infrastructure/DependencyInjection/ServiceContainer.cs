@@ -85,7 +85,19 @@ namespace eCommerce.Infrastructure.DependencyInjection
         public static IApplicationBuilder UseInfrastructureService(this IApplicationBuilder app)
         {
             app.UseMiddleware<ExceptionHandlingMiddleware>();
+            SeedIdentityRoles(app);
             return app;
+        }
+
+        private static void SeedIdentityRoles(IApplicationBuilder app)
+        {
+            using var scope = app.ApplicationServices.CreateScope();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            foreach (var roleName in new[] { "Admin", "User" })
+            {
+                if (!roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult())
+                    roleManager.CreateAsync(new IdentityRole(roleName)).GetAwaiter().GetResult();
+            }
         }
     }
 }
