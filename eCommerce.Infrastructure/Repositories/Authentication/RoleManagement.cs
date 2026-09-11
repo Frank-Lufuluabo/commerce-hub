@@ -4,10 +4,18 @@ using Microsoft.AspNetCore.Identity;
 
 namespace eCommerce.Infrastructure.Repositories.Authentication
 {
-    public class RoleManagement(UserManager<AppUser> userManager) : IRoleManagement
+    public class RoleManagement(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager) : IRoleManagement
     {
-        public async Task<bool> AddUserToRole(AppUser user, string roleName) =>
-            (await userManager.AddToRoleAsync(user, roleName)).Succeeded;
+        public async Task<bool> AddUserToRole(AppUser user, string roleName)
+        {
+            if (!await roleManager.RoleExistsAsync(roleName))
+            {
+                var createRole = await roleManager.CreateAsync(new IdentityRole(roleName));
+                if (!createRole.Succeeded) return false;
+            }
+
+            return (await userManager.AddToRoleAsync(user, roleName)).Succeeded;
+        }
 
         public async Task<string?> GetUserRole(string userEmail)
         {
