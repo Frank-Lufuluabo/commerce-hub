@@ -25,16 +25,15 @@ namespace eCommerce.Infrastructure.Data
                 .HasData(
                 new IdentityRole
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = "e8fee4c7-e638-41f4-bf69-40f7d6044799",
                     Name = "Admin",
                     NormalizedName = "ADMIN"
                 },
                 new IdentityRole
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = "22fcf1b2-d947-4d91-84c9-fbc25b6c64ac",
                     Name = "User",
                     NormalizedName = "USER"
-
                 });
         }
     }
