@@ -9,7 +9,7 @@ namespace eCommerce.Host.Controllers
     public class CartController(ICartService cartService) : ControllerBase
     {
         [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout(checkout checkout)
+        public async Task<IActionResult> Checkout(Checkout checkout)
         {
             if (!ModelState.IsValid) 
                 return BadRequest(ModelState);
