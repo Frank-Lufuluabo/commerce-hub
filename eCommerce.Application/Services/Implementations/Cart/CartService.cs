@@ -40,12 +40,13 @@ namespace eCommerce.Application.Services.Implementations.Cart
 
             var cartProducts = carts
                 .Select(cartItem => products.FirstOrDefault(p => p.Id == cartItem.ProductId))
-                .Where(product => product != null)
+                .OfType<Product>()
                 .ToList();
 
             var totalAmount = carts
                 .Where(cartItem => cartProducts.Any(p => p.Id == cartItem.ProductId))
-                .Sum(cartItem => cartItem.Quantity * cartProducts.First(p => p.Id == cartItem.ProductId)! .Price);
+                .Sum(cartItem => cartItem.Quantity * (cartProducts.First(p => p.Id == cartItem.ProductId).Price ?? 0));
+
             return (cartProducts!, totalAmount);
         }
     }
