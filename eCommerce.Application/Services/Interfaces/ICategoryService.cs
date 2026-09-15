@@ -1,5 +1,6 @@
 ﻿using eCommerce.Application.DTOs;
 using eCommerce.Application.DTOs.Category;
+using eCommerce.Application.DTOs.Product;
 
 namespace eCommerce.Application.Service.Interface
 {
@@ -10,5 +11,6 @@ namespace eCommerce.Application.Service.Interface
         Task<ServiceResponse> AddAsync(CreateCategory category);
         Task<ServiceResponse> UpdateAsync(UpdateCategory category);
         Task<ServiceResponse> DeleteAsync(Guid id);
+        Task<IEnumerable<GetProduct>> GetProductByCategory(Guid categoryId);
     }
 }
