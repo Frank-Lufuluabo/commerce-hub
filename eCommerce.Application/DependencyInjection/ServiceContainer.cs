@@ -8,6 +8,8 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using eCommerce.Application.Service.Interface.Authentication;
 using eCommerce.Application.Service.Implementation.Authentication;
+using eCommerce.Application.Services.Implementations.Cart;
+using eCommerce.Application.Services.Interfaces.Cart;
 
 namespace eCommerce.Application.DependencyInjection
 {
@@ -23,6 +25,8 @@ namespace eCommerce.Application.DependencyInjection
             services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
             services.AddScoped<IValidationService, ValidationService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<ICartService, CartService>();
+            services.AddScoped<IPaymentMethodService, PaymentMethodService>();
             return services;
         }
     }

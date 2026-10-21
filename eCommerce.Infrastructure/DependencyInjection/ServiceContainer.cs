@@ -5,11 +5,13 @@ using eCommerce.Domain.Entities.Identity;
 using eCommerce.Domain.Interfaces;
 using eCommerce.Domain.Interfaces.Authentication;
 using eCommerce.Domain.Interfaces.Cart;
+using eCommerce.Domain.Interfaces.CategorySpecifics;
 using eCommerce.Infrastructure.Data;
 using eCommerce.Infrastructure.Middleware;
 using eCommerce.Infrastructure.Repositories;
 using eCommerce.Infrastructure.Repositories.Authentication;
 using eCommerce.Infrastructure.Repositories.Cart;
+using eCommerce.Infrastructure.Repositories.CategorySpecifics;
 using eCommerce.Infrastructure.Services;
 using EntityFramework.Exceptions.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -83,6 +85,8 @@ namespace eCommerce.Infrastructure.DependencyInjection
             services.AddScoped<IRoleManagement, RoleManagement>();
             services.AddScoped<IPaymentMethod, PaymentMethodRepository>();
             services.AddScoped<IPaymentService, StripePaymentService>();
+            services.AddScoped<ICategory, CategoryRepository>();
+            services.AddScoped<ICart, CartRepository>();
 
             Stripe.StripeConfiguration.ApiKey = config["Stripe:SecretKey"];
             return services;
