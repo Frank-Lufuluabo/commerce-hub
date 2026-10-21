@@ -1,6 +1,7 @@
 using eCommerce.Infrastructure.DependencyInjection;
 using eCommerce.Application.DependencyInjection;
 using Serilog;
+using System.Text.Json.Serialization;
 
 namespace eCommerce.Host
 {
@@ -21,7 +22,8 @@ namespace eCommerce.Host
             Log.Information("Application is building .....");
 
             // Add services to the container.
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddJsonOptions(options =>
+                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
